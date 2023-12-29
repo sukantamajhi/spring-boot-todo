@@ -10,5 +10,7 @@ public final class Constant {
     public static String UNAUTHORIZED = "Unauthorized";
     public static String INVALID_TOKEN = "Session Expired";
     public static String TODO_ADDED = "Todo added successfully";
+    public static String TODO_FETCHED = "Todo fetched successfully";
+    public static String TODO_UPDATED = "Todo updated successfully";
 
 }

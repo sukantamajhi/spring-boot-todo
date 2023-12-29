@@ -2,19 +2,40 @@ package com.sukanta.springboottodo.services;
 
 import com.sukanta.springboottodo.models.Todo;
 import com.sukanta.springboottodo.repositories.TodoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class todoServices {
+    private final Logger logger = LoggerFactory.getLogger(todoServices.class);
 
-    @Autowired
-    private TodoRepository todoRepository;
 
-    public Todo addTodo(@RequestBody Todo request) {
-        Todo todo = new Todo(request.getTitle(), request.getDescription(), request.getCreated_by());
+    private final TodoRepository todoRepository;
+
+    public todoServices(TodoRepository todoRepository) {
+        this.todoRepository = todoRepository;
+    }
+
+    public Todo addTodo(Todo request, ObjectId userId) {
+        logger.info(userId + " <<-- userId");
+
+        Todo todo = new Todo(request.getTitle(), request.getDescription(), userId);
         return todoRepository.save(todo);
+    }
+
+    public List<Todo> getTodos() {
+        return todoRepository.findAll();
+    }
+
+    public void updateTodo(String todoId, Todo request) {
+        Optional<?> todo = todoRepository.findById(todoId);
+        System.out.println(todo + " <<-- todo");
+
     }
 
 }

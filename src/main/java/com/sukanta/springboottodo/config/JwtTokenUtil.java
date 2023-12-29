@@ -33,12 +33,28 @@ public class JwtTokenUtil {
         return userRepository.findByEmail(email);
     }
 
+    public ObjectId getUserId(String token) {
+        Claims claims = Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token).getBody();
+
+        System.out.println(new ObjectId(String.valueOf(claims.get("userId"))) + " <<-- userId");
+
+        return new ObjectId(String.valueOf(claims.get("userId")));
+    }
+
     public boolean validateToken(String token) {
         try {
             Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
             return true;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    public boolean verifyJWT(String authToken) {
+        if (authToken.isEmpty()) {
+            return false;
+        } else {
+            return validateToken(authToken);
         }
     }
 }
