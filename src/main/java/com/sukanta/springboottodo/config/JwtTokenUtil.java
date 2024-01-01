@@ -36,9 +36,14 @@ public class JwtTokenUtil {
     public ObjectId getUserId(String token) {
         Claims claims = Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token).getBody();
 
-        System.out.println(new ObjectId(String.valueOf(claims.get("userId"))) + " <<-- userId");
+        try{
+            String userId = String.valueOf(claims.get("userId"));
 
-        return new ObjectId(String.valueOf(claims.get("userId")));
+            return new ObjectId(userId);
+        } catch (Exception e){
+            System.err.println("Error converting ObjectId: " + e.getMessage());
+            return null;
+        }
     }
 
     public boolean validateToken(String token) {

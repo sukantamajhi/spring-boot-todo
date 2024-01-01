@@ -39,8 +39,6 @@ public class todoController {
         } else {
             ObjectId userId = jwtTokenUtil.getUserId(authorization);
 
-            logger.info(userId + " <<-- userId");
-
             Todo todo = todoServices.addTodo(request, userId);
 
             apiResponse.setError(false);
@@ -60,7 +58,9 @@ public class todoController {
             apiResponse.setMessage(Constant.UNAUTHORIZED);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResponse);
         } else {
-            List<Todo> todos = todoServices.getTodos();
+            ObjectId userId = jwtTokenUtil.getUserId(authorization);
+
+            List<Todo> todos = todoServices.getTodos(userId);
 
             apiResponse.setData(todos);
             apiResponse.setError(false);

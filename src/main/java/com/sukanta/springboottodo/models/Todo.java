@@ -1,11 +1,13 @@
 package com.sukanta.springboottodo.models;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.NonNull;
 import lombok.Getter;
+import lombok.Setter;
 import org.bson.types.ObjectId;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -17,26 +19,47 @@ import java.time.LocalDateTime;
 @Getter
 public class Todo implements Serializable {
     @Field(name = "title")
-    private final String title;
+    @NonNull
+    @Setter
+    private String title;
     @Field(name = "description")
-    private final String description;
+    @NonNull
+    @Setter
+    private String description;
     @Field(name = "created_by")
-    @DBRef(db = "users")
-    private final ObjectId created_by;
+    @NonNull
+    @Setter
+    private ObjectId created_by;
     @Field(name = "created_at")
     @CreatedDate
-    private final LocalDateTime created_at;
+    @Setter
+    private LocalDateTime created_at;
     @Field(name = "updated_at")
     @LastModifiedDate
-    private final LocalDateTime updated_at;
+    @Setter
+    private LocalDateTime updated_at;
+
+    @Setter
+    private User createdBy;
 
 
-    public Todo(String title, String description, ObjectId created_by) {
+    public Todo() {
+
+    }
+
+
+    public Todo(@NotNull String title, @NotNull String description, @NotNull ObjectId created_by) {
         this.title = title;
         this.description = description;
         this.created_by = created_by;
-        created_at = LocalDateTime.now();
-        updated_at = LocalDateTime.now();
+    }
+
+    public String getCreated_by() {
+        return String.valueOf(created_by);
+    }
+
+    public ObjectId getCreatedBy(){
+        return created_by;
     }
 }
 
