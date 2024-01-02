@@ -28,7 +28,7 @@ public class todoController {
     }
 
     @PostMapping("")
-    public ResponseEntity<ApiResponse<Todo>> addTodo(@NotNull @RequestHeader(name = "Authorization") String authorization, @RequestBody Todo request) throws Exception {
+    public ResponseEntity<ApiResponse<Todo>> addTodo(@NotNull @RequestHeader(name = "Authorization") String authorization, @RequestBody Todo request) {
         ApiResponse<Todo> apiResponse = new ApiResponse<>();
         try {
             if (!jwtTokenUtil.verifyJWT(authorization)) {
@@ -59,7 +59,7 @@ public class todoController {
     }
 
     @GetMapping("")
-    public ResponseEntity<ApiResponse<List<Todo>>> getTodo(@NotNull @RequestHeader(name = "Authorization") String authorization) throws Exception {
+    public ResponseEntity<ApiResponse<List<Todo>>> getTodo(@NotNull @RequestHeader(name = "Authorization") String authorization) {
         ApiResponse<List<Todo>> apiResponse = new ApiResponse<>();
         try {
             if (!jwtTokenUtil.verifyJWT(authorization)) {
@@ -90,7 +90,7 @@ public class todoController {
     }
 
     @PutMapping("/{todoId}")
-    public ResponseEntity<ApiResponse<Todo>> updateTodo(@NotNull @RequestHeader(name = "Authorization") String authToken, @RequestBody Todo request, @PathVariable String todoId) throws Exception {
+    public ResponseEntity<ApiResponse<Todo>> updateTodo(@NotNull @RequestHeader(name = "Authorization") String authToken, @RequestBody Todo request, @PathVariable String todoId) {
         ApiResponse<Todo> apiResponse = new ApiResponse<>();
         try {
             if (!jwtTokenUtil.verifyJWT(authToken)) {
@@ -127,7 +127,7 @@ public class todoController {
     }
 
     @DeleteMapping("/{todoId}")
-    public ResponseEntity<ApiResponse<Todo>> deleteTodo(@NotNull @RequestHeader(name = "Authorization") String authToken, @PathVariable String todoId) throws Exception {
+    public ResponseEntity<ApiResponse<Todo>> deleteTodo(@NotNull @RequestHeader(name = "Authorization") String authToken, @PathVariable String todoId) {
         ApiResponse<Todo> apiResponse = new ApiResponse<>();
         try {
             if (!jwtTokenUtil.verifyJWT(authToken)) {
@@ -143,9 +143,11 @@ public class todoController {
                 if (todo) {
                     apiResponse.setError(false);
                     apiResponse.setMessage(Constant.TODO_DELETED);
+                    apiResponse.setCode("TODO_DELETED");
                 } else {
                     apiResponse.setError(true);
                     apiResponse.setMessage(Constant.TODO_DELETE_FAILED);
+                    apiResponse.setCode("TODO_DELETE_FAILED");
                 }
                 return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
             }
