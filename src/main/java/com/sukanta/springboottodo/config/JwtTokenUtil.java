@@ -5,8 +5,6 @@ import com.sukanta.springboottodo.repositories.userRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -15,14 +13,17 @@ import java.util.Date;
 public class JwtTokenUtil {
     private static final String SECRET_KEY = "MTkH3MnbXRe5OAd164KR96l9MjObF/Se339B0BKRy9Dy+MGotE+oOwM/YbtFoQzKqJpccn47AX4h7VuTS4kV5Q=="; // Change this with a strong secret key
     private static final long EXPIRATION_TIME = 864_000_000; // 10 days in milliseconds
-    @Autowired
-    private userRepository userRepository;
+    private final userRepository userRepository;
 
-    public String generateToken(String email, ObjectId userId) {
+    public JwtTokenUtil(com.sukanta.springboottodo.repositories.userRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    public String generateToken(String email, String userId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + EXPIRATION_TIME);
 
-        return Jwts.builder().claim("email", email).claim("userId", String.valueOf(userId)).setSubject(email).setIssuedAt(now).setExpiration(expiryDate).signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
+        return Jwts.builder().claim("email", email).claim("userId", userId).setIssuedAt(now).setExpiration(expiryDate).signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
     }
 
     public User getUser(String token) {
@@ -33,17 +34,10 @@ public class JwtTokenUtil {
         return userRepository.findByEmail(email);
     }
 
-    public ObjectId getUserId(String token) {
+    public String getUserId(String token) {
         Claims claims = Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token).getBody();
 
-        try{
-            String userId = String.valueOf(claims.get("userId"));
-
-            return new ObjectId(userId);
-        } catch (Exception e){
-            System.err.println("Error converting ObjectId: " + e.getMessage());
-            return null;
-        }
+        return String.valueOf(claims.get("userId"));
     }
 
     public boolean validateToken(String token) {
@@ -55,11 +49,15 @@ public class JwtTokenUtil {
         }
     }
 
-    public boolean verifyJWT(String authToken) {
+    public boolean verifyJWT(String authToken) throws Exception {
         if (authToken.isEmpty()) {
             return false;
         } else {
-            return validateToken(authToken);
+            if (validateToken(authToken)) {
+                return true;
+            } else {
+                throw new Exception(Constant.SESSION_EXPIRED);
+            }
         }
     }
 }

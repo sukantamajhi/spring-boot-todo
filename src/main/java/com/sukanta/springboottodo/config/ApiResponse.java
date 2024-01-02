@@ -11,13 +11,13 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ApiResponse<T> {
-
     @JsonProperty(required = true)
     private boolean error;
     @JsonProperty(required = true)
+    private String code;
+    @JsonProperty(required = true)
     private String message;
     private String access_token;
-
     private T data;
 
 }

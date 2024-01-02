@@ -5,7 +5,6 @@ import com.sukanta.springboottodo.config.Constant;
 import com.sukanta.springboottodo.config.JwtTokenUtil;
 import com.sukanta.springboottodo.models.Todo;
 import com.sukanta.springboottodo.services.todoServices;
-import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,9 +16,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/todos")
+@CrossOrigin(origins = "http://localhost:3000")
 public class todoController {
     private final Logger logger = LoggerFactory.getLogger(todoController.class);
-
     private final todoServices todoServices;
     private final JwtTokenUtil jwtTokenUtil;
 
@@ -29,70 +28,134 @@ public class todoController {
     }
 
     @PostMapping("")
-    public ResponseEntity<ApiResponse<Todo>> addTodo(@NotNull @RequestHeader(name = "Authorization") String authorization, @RequestBody Todo request) {
+    public ResponseEntity<ApiResponse<Todo>> addTodo(@NotNull @RequestHeader(name = "Authorization") String authorization, @RequestBody Todo request) throws Exception {
         ApiResponse<Todo> apiResponse = new ApiResponse<>();
+        try {
+            if (!jwtTokenUtil.verifyJWT(authorization)) {
+                apiResponse.setError(true);
+                apiResponse.setMessage(Constant.UNAUTHORIZED);
+                apiResponse.setCode("UNAUTHORIZED");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResponse);
+            } else {
+                String userId = jwtTokenUtil.getUserId(authorization);
 
-        if (!jwtTokenUtil.verifyJWT(authorization)) {
+                Todo todo = todoServices.addTodo(request, userId);
+
+                apiResponse.setError(false);
+                apiResponse.setMessage(Constant.TODO_ADDED);
+                apiResponse.setCode("TODO_ADDED");
+                apiResponse.setData(todo);
+
+                return ResponseEntity.ok().body(apiResponse);
+            }
+        } catch (Exception err) {
+            logger.error(err + " <<-- Error in add todo");
             apiResponse.setError(true);
-            apiResponse.setMessage(Constant.UNAUTHORIZED);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResponse);
-        } else {
-            ObjectId userId = jwtTokenUtil.getUserId(authorization);
+            apiResponse.setMessage(err.getMessage());
+            apiResponse.setCode("INTERNAL_SERVER_ERROR");
 
-            Todo todo = todoServices.addTodo(request, userId);
-
-            apiResponse.setError(false);
-            apiResponse.setMessage(Constant.TODO_ADDED);
-            apiResponse.setData(todo);
-
-            return ResponseEntity.ok().body(apiResponse);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
         }
     }
 
     @GetMapping("")
-    public ResponseEntity<ApiResponse<List<Todo>>> getTodo(@NotNull @RequestHeader(name = "Authorization") String authorization) {
+    public ResponseEntity<ApiResponse<List<Todo>>> getTodo(@NotNull @RequestHeader(name = "Authorization") String authorization) throws Exception {
         ApiResponse<List<Todo>> apiResponse = new ApiResponse<>();
+        try {
+            if (!jwtTokenUtil.verifyJWT(authorization)) {
+                apiResponse.setError(true);
+                apiResponse.setMessage(Constant.UNAUTHORIZED);
+                apiResponse.setCode("UNAUTHORIZED");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResponse);
+            } else {
+                String userId = jwtTokenUtil.getUserId(authorization);
 
-        if (!jwtTokenUtil.verifyJWT(authorization)) {
+                List<Todo> todos = todoServices.getTodos(userId);
+
+                apiResponse.setData(todos);
+                apiResponse.setError(false);
+                apiResponse.setCode("TODO_FETCHED");
+                apiResponse.setMessage(Constant.TODO_FETCHED);
+
+                return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+            }
+        } catch (Exception err) {
+            logger.error(err + " <<-- Error in getting todos");
             apiResponse.setError(true);
-            apiResponse.setMessage(Constant.UNAUTHORIZED);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResponse);
-        } else {
-            ObjectId userId = jwtTokenUtil.getUserId(authorization);
+            apiResponse.setMessage(err.getMessage());
+            apiResponse.setCode("INTERNAL_SERVER_ERROR");
 
-            List<Todo> todos = todoServices.getTodos(userId);
-
-            apiResponse.setData(todos);
-            apiResponse.setError(false);
-            apiResponse.setMessage(Constant.TODO_FETCHED);
-
-            return ResponseEntity.ok().body(apiResponse);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
         }
     }
 
     @PutMapping("/{todoId}")
-    public ResponseEntity<ApiResponse<Todo>> updateTodo(
-            @NotNull @RequestHeader(name = "Authorization") String authToken,
-            @RequestBody Todo request,
-            @PathVariable String todoId) {
-
-        System.out.println(authToken + " <<-- Authtoken \n" + todoId + " <<-- todoId");
-
+    public ResponseEntity<ApiResponse<Todo>> updateTodo(@NotNull @RequestHeader(name = "Authorization") String authToken, @RequestBody Todo request, @PathVariable String todoId) throws Exception {
         ApiResponse<Todo> apiResponse = new ApiResponse<>();
+        try {
+            if (!jwtTokenUtil.verifyJWT(authToken)) {
+                apiResponse.setError(true);
+                apiResponse.setMessage(Constant.UNAUTHORIZED);
+                apiResponse.setCode("UNAUTHORIZED");
 
-        if (!jwtTokenUtil.verifyJWT(authToken)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResponse);
+            } else {
+                String userId = jwtTokenUtil.getUserId(authToken);
+                Todo todo = todoServices.updateTodo(todoId, request, userId);
+
+                if (todo != null) {
+                    apiResponse.setError(false);
+                    apiResponse.setCode("TODO_UPDATED");
+                    apiResponse.setMessage(Constant.TODO_UPDATED);
+                    apiResponse.setData(todo);
+
+                } else {
+                    apiResponse.setError(true);
+                    apiResponse.setMessage(Constant.TODO_UPDATE_FAILED);
+                    apiResponse.setCode("TODO_UPDATE_FAILED");
+                }
+                return ResponseEntity.ok().body(apiResponse);
+            }
+        } catch (Exception err) {
+            logger.error(err + " <<-- Error in update todo");
             apiResponse.setError(true);
-            apiResponse.setMessage(Constant.UNAUTHORIZED);
+            apiResponse.setMessage(err.getMessage());
+            apiResponse.setCode("INTERNAL_SERVER_ERROR");
 
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResponse);
-        } else {
-            todoServices.updateTodo(todoId, request);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
+        }
+    }
 
-            apiResponse.setError(false);
-            apiResponse.setMessage(Constant.TODO_UPDATED);
-//            apiResponse.setData(updatedTodo);
+    @DeleteMapping("/{todoId}")
+    public ResponseEntity<ApiResponse<Todo>> deleteTodo(@NotNull @RequestHeader(name = "Authorization") String authToken, @PathVariable String todoId) throws Exception {
+        ApiResponse<Todo> apiResponse = new ApiResponse<>();
+        try {
+            if (!jwtTokenUtil.verifyJWT(authToken)) {
+                apiResponse.setError(true);
+                apiResponse.setMessage(Constant.UNAUTHORIZED);
+                apiResponse.setCode("UNAUTHORIZED");
 
-            return ResponseEntity.ok().body(apiResponse);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResponse);
+            } else {
+                String userId = jwtTokenUtil.getUserId(authToken);
+                boolean todo = todoServices.deleteTodo(todoId, userId);
+
+                if (todo) {
+                    apiResponse.setError(false);
+                    apiResponse.setMessage(Constant.TODO_DELETED);
+                } else {
+                    apiResponse.setError(true);
+                    apiResponse.setMessage(Constant.TODO_DELETE_FAILED);
+                }
+                return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+            }
+        } catch (Exception err) {
+            logger.error(err + " <<-- Error in delete todo");
+            apiResponse.setError(true);
+            apiResponse.setMessage(err.getMessage());
+            apiResponse.setCode("INTERNAL_SERVER_ERROR");
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
         }
     }
 
