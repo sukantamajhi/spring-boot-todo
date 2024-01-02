@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/todos")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"})
 public class todoController {
     private final Logger logger = LoggerFactory.getLogger(todoController.class);
     private final todoServices todoServices;
@@ -108,7 +108,6 @@ public class todoController {
                     apiResponse.setCode("TODO_UPDATED");
                     apiResponse.setMessage(Constant.TODO_UPDATED);
                     apiResponse.setData(todo);
-
                 } else {
                     apiResponse.setError(true);
                     apiResponse.setMessage(Constant.TODO_UPDATE_FAILED);

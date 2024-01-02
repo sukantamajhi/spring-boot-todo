@@ -47,10 +47,4 @@ public class User {
                 ", address='" + address + '\'' +
                 '}';
     }
-
-    public interface UserProjection {
-        String getEmail();
-
-        String getId();
-    }
 }

@@ -11,14 +11,13 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Document(collection = "todos")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
 @Setter
-public class Todo implements Serializable {
+public class Todo {
     @Id
     private String id = String.valueOf(ObjectId.get());
     @Field(name = "title")

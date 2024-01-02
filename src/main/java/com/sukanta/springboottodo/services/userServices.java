@@ -11,11 +11,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class userServices {
-
     private final Logger logger = LoggerFactory.getLogger(userServices.class);
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(16);
     private final JwtTokenUtil jwtTokenUtil;
-
     private final userRepository userRepository;
 
     public userServices(JwtTokenUtil jwtTokenUtil, userRepository userRepository) {
@@ -25,8 +23,6 @@ public class userServices {
 
     public User doSignUp(User user) throws Exception {
         User ExistingUser = userRepository.findByEmail(user.getEmail());
-        logger.info("Existing user ===>> " + ExistingUser);
-
         if (ExistingUser != null) {
             throw new Exception(Constant.USER_ALREADY_EXISTS);
         } else {
