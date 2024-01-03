@@ -5,8 +5,11 @@ import com.sukanta.springboottodo.repositories.userRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
+import java.security.Key;
 import java.util.Date;
 
 @Component
@@ -19,15 +22,20 @@ public class JwtTokenUtil {
         this.userRepository = userRepository;
     }
 
+    private Key getSignInKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
     public String generateToken(String email, String userId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + EXPIRATION_TIME);
 
-        return Jwts.builder().claim("email", email).claim("userId", userId).setIssuedAt(now).setExpiration(expiryDate).signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
+        return Jwts.builder().claim("email", email).claim("userId", userId).setIssuedAt(now).setExpiration(expiryDate).signWith(getSignInKey(), SignatureAlgorithm.HS512).compact();
     }
 
     public User getUser(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token).getBody();
+        Claims claims = Jwts.parserBuilder().setSigningKey(getSignInKey()).build().parseClaimsJws(token).getBody();
 
         String email = (String) claims.get("email");
 
@@ -35,14 +43,14 @@ public class JwtTokenUtil {
     }
 
     public String getUserId(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token).getBody();
+        Claims claims = Jwts.parserBuilder().setSigningKey(getSignInKey()).build().parseClaimsJws(token).getBody();
 
         return String.valueOf(claims.get("userId"));
     }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(getSignInKey()).build().parseClaimsJws(token);
             return true;
         } catch (Exception e) {
             return false;
@@ -51,10 +59,10 @@ public class JwtTokenUtil {
 
     public boolean verifyJWT(String authToken) throws Exception {
         if (authToken.isEmpty()) {
-            return false;
+            return true;
         } else {
             if (validateToken(authToken)) {
-                return true;
+                return false;
             } else {
                 throw new Exception(Constant.SESSION_EXPIRED);
             }

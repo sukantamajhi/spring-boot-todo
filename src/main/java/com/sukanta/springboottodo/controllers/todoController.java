@@ -31,7 +31,7 @@ public class todoController {
     public ResponseEntity<ApiResponse<Todo>> addTodo(@NotNull @RequestHeader(name = "Authorization") String authorization, @RequestBody Todo request) {
         ApiResponse<Todo> apiResponse = new ApiResponse<>();
         try {
-            if (!jwtTokenUtil.verifyJWT(authorization)) {
+            if (jwtTokenUtil.verifyJWT(authorization)) {
                 apiResponse.setError(true);
                 apiResponse.setMessage(Constant.UNAUTHORIZED);
                 apiResponse.setCode("UNAUTHORIZED");
@@ -62,7 +62,7 @@ public class todoController {
     public ResponseEntity<ApiResponse<List<Todo>>> getTodo(@NotNull @RequestHeader(name = "Authorization") String authorization) {
         ApiResponse<List<Todo>> apiResponse = new ApiResponse<>();
         try {
-            if (!jwtTokenUtil.verifyJWT(authorization)) {
+            if (jwtTokenUtil.verifyJWT(authorization)) {
                 apiResponse.setError(true);
                 apiResponse.setMessage(Constant.UNAUTHORIZED);
                 apiResponse.setCode("UNAUTHORIZED");
@@ -93,7 +93,7 @@ public class todoController {
     public ResponseEntity<ApiResponse<Todo>> updateTodo(@NotNull @RequestHeader(name = "Authorization") String authToken, @RequestBody Todo request, @PathVariable String todoId) {
         ApiResponse<Todo> apiResponse = new ApiResponse<>();
         try {
-            if (!jwtTokenUtil.verifyJWT(authToken)) {
+            if (jwtTokenUtil.verifyJWT(authToken)) {
                 apiResponse.setError(true);
                 apiResponse.setMessage(Constant.UNAUTHORIZED);
                 apiResponse.setCode("UNAUTHORIZED");
@@ -129,7 +129,7 @@ public class todoController {
     public ResponseEntity<ApiResponse<Todo>> deleteTodo(@NotNull @RequestHeader(name = "Authorization") String authToken, @PathVariable String todoId) {
         ApiResponse<Todo> apiResponse = new ApiResponse<>();
         try {
-            if (!jwtTokenUtil.verifyJWT(authToken)) {
+            if (jwtTokenUtil.verifyJWT(authToken)) {
                 apiResponse.setError(true);
                 apiResponse.setMessage(Constant.UNAUTHORIZED);
                 apiResponse.setCode("UNAUTHORIZED");
